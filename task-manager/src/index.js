@@ -24,4 +24,15 @@ const myFunction = async () => {
 
 myFunction();
 
+// Implementing json web token
+const jwt = require('jsonwebtoken')
+const jwtFunc = async () => {
+    const token = jwt.sign({_id: 'abc123'}, 'thisissaurabhchandil', {expiresIn: '1 seconds'})
+    console.log('token : ', token)
 
+    // token verification
+    const data = jwt.verify(token, 'thisissaurabhchandil')
+    console.log('data : ', data)
+} 
+
+jwtFunc()

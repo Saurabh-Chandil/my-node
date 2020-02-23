@@ -4,17 +4,16 @@ const User = require('../models/user');
 
 const userRoute = new express.Router();
 
+// user sign-up
 userRoute.post('/users', async (req, res) => {
-    // console.log('Request body : ', req.body);
-    // res.send('testing');
-
+    
     const user = new User(req.body);
-
     try {
        await user.save();
-       res.status(201).send('Record inserted successfully'); 
+       const token = await user.generateAuthToken();
+       res.status(201).send({user, token}); 
     } catch (error) {
-       res.status(400).send('Problem in record insertion'); 
+       res.status(400).send(error); 
     }
     // user.save().then(() => {
     //     res.status(201).send(user);
@@ -22,6 +21,17 @@ userRoute.post('/users', async (req, res) => {
 
     //});
 });
+
+userRoute.post('/users/login', async (req, res) => {
+    try {
+        const user = await User.findByCredentials(req.body.email, req.body.password);
+        const token = await user.generateAuthToken();
+        res.status(201).send({user, token})
+
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
 
 userRoute.get('/users', (req, res) => {
     User.find({}).then(users => {
