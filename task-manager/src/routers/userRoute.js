@@ -9,18 +9,17 @@ const userRoute = new express.Router();
 userRoute.post('/users', async (req, res) => {
     
     const user = new User(req.body);
+    const dbUser = await User.findOne({ email: user.email })
     try {
-       await user.save();
-       const token = await user.generateAuthToken();
-       res.status(201).send({user, token}); 
+        if(!dbUser) {
+            await user.save()
+            const token = await user.generateAuthToken()
+            res.status(200).send({user, token}) 
+        } else
+            res.status(400).send('User already exists') 
     } catch (error) {
-       res.status(400).send(error); 
+       res.status(400).send(error) 
     }
-    // user.save().then(() => {
-    //     res.status(201).send(user);
-    // }).catch(() => {
-
-    //});
 });
 
 userRoute.post('/users/login', async (req, res) => {
@@ -44,6 +43,20 @@ userRoute.get('/users/me', auth, async (req, res) => {
  
     res.send(req.user);
 });
+
+userRoute.post('/users/logout', auth, async (req, res) => {
+    try {
+        // from auth middleware
+        req.user.tokens = req.user.tokens.filter((token) => {
+            return token.token != user.token
+        })
+
+        await req.user.save()
+        res.send(201)
+    } catch (error) {
+        res.status(500).send()
+    }
+})
 
 userRoute.get('/users/:id', (req, res) => {
 
